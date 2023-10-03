@@ -34,7 +34,7 @@ This one has limited features and no control over UI
 
 ```yaml
 # add this line to your dependencies
-fluttertoast: ^8.2.1
+fluttertoast: ^8.2.2
 ```
 
 ```dart
@@ -179,10 +179,10 @@ _showToast() {
 Now Call `_showToast()`
 
 For more details check `example` project
-  
-| property        | description                                                        | default    |  
-| --------------- | ------------------------------------------------------------------ |------------|  
-| child             | Widget (Not Null)(required)                                        |required    |  
+
+| property        | description                                                        | default    |
+| --------------- | ------------------------------------------------------------------ |------------|
+| child             | Widget (Not Null)(required)                                        |required    |
 | toastDuration     | Duration (optional)                                                 |  |
 | gravity         | ToastGravity.*    |  |
 

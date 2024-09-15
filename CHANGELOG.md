@@ -1,3 +1,15 @@
+## [8.2.8]
+
+- Merged multiple PRs thanks for your contributions
+
+## [8.2.6]
+
+- Merged PR #507 - Migrating dart:html to package:web thanks to @a-h-mzd for PR
+
+## [8.2.5]
+
+- Merged multiple PRs #492 #490 #489 #480 - Thanks to all contributors
+
 ## [8.2.4]
 
 - Reverted the minSDK 22 which broke many apps - Sorry everyone

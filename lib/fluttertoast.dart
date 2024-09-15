@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -14,13 +15,26 @@ enum Toast {
 
 /// ToastGravity
 /// Used to define the position of the Toast on the screen
-enum ToastGravity { TOP, BOTTOM, CENTER, TOP_LEFT, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_RIGHT, CENTER_LEFT, CENTER_RIGHT, SNACKBAR, NONE }
+enum ToastGravity {
+  TOP,
+  BOTTOM,
+  CENTER,
+  TOP_LEFT,
+  TOP_RIGHT,
+  BOTTOM_LEFT,
+  BOTTOM_RIGHT,
+  CENTER_LEFT,
+  CENTER_RIGHT,
+  SNACKBAR,
+  NONE
+}
 
 /// Plugin to show a toast message on screen
 /// Only for android, ios and Web platforms
 class Fluttertoast {
   /// [MethodChannel] used to communicate with the platform side.
-  static const MethodChannel _channel = const MethodChannel('PonnamKarthik/fluttertoast');
+  static const MethodChannel _channel =
+      const MethodChannel('PonnamKarthik/fluttertoast');
 
   /// Let say you have an active show
   /// Use this method to hide the toast immediately
@@ -29,18 +43,22 @@ class Fluttertoast {
     return res;
   }
 
-  /// Summons the platform's showToast which will display the message
+  /// Show the [msg] via native platform's toast.
   ///
-  /// Wraps the platform's native Toast for android.
-  /// Wraps the Plugin https://github.com/scalessec/Toast for iOS
-  /// Wraps the https://github.com/apvarun/toastify-js for Web
+  /// On Android uses Toast.
+  /// On iOS uses https://github.com/scalessec/Toast plugin.
+  /// On web uses https://github.com/apvarun/toastify-js library.
   ///
-  /// Parameter [msg] is required and all remaining are optional
+  /// Parameter [msg] is required and all remaining are optional.
+  ///
+  /// The [fontAsset] is the path to your Flutter asset to use in toast.
+  /// If not specified platform's default font will be used.
   static Future<bool?> showToast({
     required String msg,
     Toast? toastLength,
     int timeInSecForIosWeb = 1,
     double? fontSize,
+    String? fontAsset,
     ToastGravity? gravity,
     Color? backgroundColor,
     Color? textColor,
@@ -79,6 +97,7 @@ class Fluttertoast {
       'textcolor': textColor.value,
       'iosTextcolor': textColor.value,
       'fontSize': fontSize,
+      'fontAsset': fontAsset,
       'webShowClose': webShowClose,
       'webBgColor': webBgColor,
       'webPosition': webPosition
@@ -90,7 +109,8 @@ class Fluttertoast {
 }
 
 /// Signature for a function to buildCustom Toast
-typedef PositionedToastBuilder = Widget Function(BuildContext context, Widget child);
+typedef PositionedToastBuilder = Widget Function(
+    BuildContext context, Widget child);
 
 /// Runs on dart side this has no interaction with the Native Side
 /// Works with all platforms just in two lines of code
@@ -124,7 +144,7 @@ class FToast {
   /// the overlay to the screen
   ///
   _showOverlay() {
-    if (_overlayQueue.length == 0) {
+    if (_overlayQueue.isEmpty) {
       _entry = null;
       return;
     }
@@ -147,20 +167,10 @@ class FToast {
     //   removeQueuedCustomToasts();
     //   return; // Or maybe thrown error too
     // }
-    var _overlay;
+    OverlayState? _overlay;
     try {
       _overlay = Overlay.of(context!);
     } catch (err) {
-      removeQueuedCustomToasts();
-      throw ("""Error: Overlay is null. 
-      Please don't use top of the widget tree context (such as Navigator or MaterialApp) or 
-      create overlay manually in MaterialApp builder.
-      More information 
-        - https://github.com/ponnamkarthik/FlutterToast/issues/393
-        - https://github.com/ponnamkarthik/FlutterToast/issues/234""");
-    }
-    if (_overlay == null) {
-      /// Need to clear queue
       removeQueuedCustomToasts();
       throw ("""Error: Overlay is null. 
       Please don't use top of the widget tree context (such as Navigator or MaterialApp) or 
@@ -224,7 +234,8 @@ class FToast {
     bool ignorePointer = false,
     bool isDismissable = false,
   }) {
-    if (context == null) throw ("Error: Context is null, Please call init(context) before showing toast.");
+    if (context == null)
+      throw ("Error: Context is null, Please call init(context) before showing toast.");
     Widget newChild = _ToastStateFul(
         child,
         toastDuration,
@@ -245,10 +256,12 @@ class FToast {
     }
 
     OverlayEntry newEntry = OverlayEntry(builder: (context) {
-      if (positionedToastBuilder != null) return positionedToastBuilder(context, newChild);
+      if (positionedToastBuilder != null)
+        return positionedToastBuilder(context, newChild);
       return _getPostionWidgetBasedOnGravity(newChild, gravity);
     });
-    _overlayQueue.add(_ToastEntry(entry: newEntry, duration: toastDuration, fadeDuration: fadeDuration));
+    _overlayQueue.add(_ToastEntry(
+        entry: newEntry, duration: toastDuration, fadeDuration: fadeDuration));
     if (_timer == null) _showOverlay();
   }
 
@@ -264,7 +277,8 @@ class FToast {
       case ToastGravity.TOP_RIGHT:
         return Positioned(top: 100.0, right: 24.0, child: child);
       case ToastGravity.CENTER:
-        return Positioned(top: 50.0, bottom: 50.0, left: 24.0, right: 24.0, child: child);
+        return Positioned(
+            top: 50.0, bottom: 50.0, left: 24.0, right: 24.0, child: child);
       case ToastGravity.CENTER_LEFT:
         return Positioned(top: 50.0, bottom: 50.0, left: 24.0, child: child);
       case ToastGravity.CENTER_RIGHT:
@@ -274,7 +288,11 @@ class FToast {
       case ToastGravity.BOTTOM_RIGHT:
         return Positioned(bottom: 50.0, right: 24.0, child: child);
       case ToastGravity.SNACKBAR:
-        return Positioned(bottom: MediaQuery.of(context!).viewInsets.bottom, left: 0, right: 0, child: child);
+        return Positioned(
+            bottom: MediaQuery.of(context!).viewInsets.bottom,
+            left: 0,
+            right: 0,
+            child: child);
       case ToastGravity.NONE:
         return Positioned.fill(child: child);
       case ToastGravity.BOTTOM:
@@ -297,8 +315,6 @@ TransitionBuilder FToastBuilder() {
 
 /// Simple StatelessWidget which holds the child
 /// and creates an [Overlay] to display the toast
-/// which returns the Directionality widget with [TextDirection.ltr]
-/// and [Overlay] widget
 class _FToastHolder extends StatelessWidget {
   const _FToastHolder({Key? key, required this.child}) : super(key: key);
 
@@ -306,7 +322,7 @@ class _FToastHolder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Overlay overlay = Overlay(
+    return Overlay(
       initialEntries: <OverlayEntry>[
         OverlayEntry(
           builder: (BuildContext ctx) {
@@ -314,11 +330,6 @@ class _FToastHolder extends StatelessWidget {
           },
         ),
       ],
-    );
-
-    return Directionality(
-      textDirection: TextDirection.ltr,
-      child: overlay,
     );
   }
 }
@@ -341,7 +352,10 @@ class _ToastEntry {
 /// internal [StatefulWidget] which handles the show and hide
 /// animations for [FToast]
 class _ToastStateFul extends StatefulWidget {
-  _ToastStateFul(this.child, this.duration, this.fadeDuration, this.ignorePointer, this.onDismiss, {Key? key}) : super(key: key);
+  _ToastStateFul(this.child, this.duration, this.fadeDuration,
+      this.ignorePointer, this.onDismiss,
+      {Key? key})
+      : super(key: key);
 
   final Widget child;
   final Duration duration;
@@ -354,7 +368,8 @@ class _ToastStateFul extends StatefulWidget {
 }
 
 /// State for [_ToastStateFul]
-class ToastStateFulState extends State<_ToastStateFul> with SingleTickerProviderStateMixin {
+class ToastStateFulState extends State<_ToastStateFul>
+    with SingleTickerProviderStateMixin {
   /// Start the showing animations for the toast
   showIt() {
     _animationController!.forward();
@@ -378,7 +393,8 @@ class ToastStateFulState extends State<_ToastStateFul> with SingleTickerProvider
       vsync: this,
       duration: widget.fadeDuration,
     );
-    _fadeAnimation = CurvedAnimation(parent: _animationController!, curve: Curves.easeIn);
+    _fadeAnimation =
+        CurvedAnimation(parent: _animationController!, curve: Curves.easeIn);
     super.initState();
 
     showIt();

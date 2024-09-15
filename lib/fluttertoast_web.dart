@@ -1,6 +1,7 @@
 import 'dart:async';
-import 'dart:html' as html;
-import 'dart:ui' as ui;
+import 'dart:js_interop';
+import 'package:web/web.dart' as web;
+import 'dart:ui_web' as ui;
 import 'package:flutter/services.dart';
 import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 
@@ -69,29 +70,29 @@ class FluttertoastWebPlugin {
   /// [injectCssAndJSLibraries] which add the JS and CSS files into DOM
   Future<void> injectCssAndJSLibraries() async {
     final List<Future<void>> loading = <Future<void>>[];
-    final List<html.HtmlElement> tags = <html.HtmlElement>[];
+    final List<web.HTMLElement> tags = <web.HTMLElement>[];
 
-    // ignore: undefined_prefixed_name
-    final cssUrl = ui.webOnlyAssetManager.getAssetUrl(
+    final cssUrl = ui.assetManager.getAssetUrl(
       'packages/fluttertoast/assets/toastify.css',
     );
-    final html.LinkElement css = html.LinkElement()
+    final web.HTMLLinkElement css = web.HTMLLinkElement()
       ..id = 'toast-css'
-      ..attributes = {"rel": "stylesheet"}
+      ..setAttribute("rel", "stylesheet")
       ..href = cssUrl;
     tags.add(css);
 
-    // ignore: undefined_prefixed_name
-    final jsUrl = ui.webOnlyAssetManager.getAssetUrl(
+    final jsUrl = ui.assetManager.getAssetUrl(
       'packages/fluttertoast/assets/toastify.js',
     );
-    final html.ScriptElement script = html.ScriptElement()
+    final web.HTMLScriptElement script = web.HTMLScriptElement()
       ..async = true
       // ..defer = true
       ..src = jsUrl;
     loading.add(script.onLoad.first);
     tags.add(script);
-    html.querySelector('head')!.children.addAll(tags);
+    for (final web.HTMLElement tag in tags) {
+      web.document.querySelector('head')!.append(tag);
+    }
 
     await Future.wait(loading);
   }
@@ -107,7 +108,7 @@ class FluttertoastWebPlugin {
       bool showClose = false,
       int? textColor}) {
     String m = msg.replaceAll("'", "\\'").replaceAll("\n", "<br />");
-    html.Element? ele = html.querySelector("#toast-content");
+    web.Element? ele = web.document.querySelector("#toast-content");
     String content = """
           var toastElement = Toastify({
             text: '$m',
@@ -119,18 +120,23 @@ class FluttertoastWebPlugin {
           });
           toastElement.showToast();
         """;
-    if (html.querySelector("#toast-content") != null) {
+    if (web.document.querySelector("#toast-content") != null) {
       ele!.remove();
     }
-    final html.ScriptElement scriptText = html.ScriptElement()
-      ..id = "toast-content"
-      ..innerHtml = content;
-    html.querySelector('head')!.children.add(scriptText);
+    final web.HTMLScriptElement scriptText = web.HTMLScriptElement()
+      ..id = "toast-content";
+    if (scriptText.innerHTML is String) {
+      scriptText.innerHTML = content.toJS.toString() as dynamic;
+    } else {
+      scriptText.innerHTML = content.toJS as dynamic;
+    }
+    web.document.body!.append(scriptText);
     if (textColor != null) {
-      html.Element toast = html.querySelector('.toastify')!;
+      web.Element toast = web.document.querySelector('.toastify')!;
       String tcRadix = textColor.toRadixString(16);
       final String tC = "${tcRadix.substring(2)}${tcRadix.substring(0, 2)}";
-      toast.style.setProperty('color', "#$tC");
+      final style = toast.getAttribute('style') ?? '';
+      toast.setAttribute('style', '$style color: #$tC;');
     }
   }
 }
